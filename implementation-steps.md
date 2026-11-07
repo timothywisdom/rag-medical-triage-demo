@@ -159,3 +159,15 @@ TDD log for `plan.md`. Updated after each backlog item.
 **Refactor:** Shared unavailable message.
 
 **Commit:** `Make the web app a thin client of the agent service so either side can be deployed and scaled alone`
+
+## Item 13 — Minimal UI
+
+**Requirement:** Patient picker + question form showing action/urgency/reply/evidence/reason; emergency badge prominent.
+
+**RED:** No page/form; Playwright could not find Patient control (also Next failed resolving `.js` imports).
+
+**GREEN:** Next.js page + Playwright dual webServer; fixed cwd-independent DATA_DIR; web imports without `.js` for Next.
+
+**Refactor:** None beyond path fixes.
+
+**Commit:** `Add a minimal UI to exercise triage by patient during manual review`

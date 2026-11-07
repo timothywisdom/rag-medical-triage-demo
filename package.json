@@ -7,10 +7,15 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "dev": "concurrently -n agent,web -c cyan,magenta \"npm run dev -w @maple/agent\" \"npm run dev -w @maple/web\"",
+    "ask": "npm run ask -w @maple/agent --",
     "typecheck": "tsc -p apps/agent --noEmit && tsc -p apps/web --noEmit"
   },
   "devDependencies": {
+    "@playwright/test": "^1.55.0",
     "@types/node": "^22.19.0",
+    "concurrently": "^9.2.1",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"
   }

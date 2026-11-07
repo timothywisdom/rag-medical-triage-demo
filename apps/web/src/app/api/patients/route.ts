@@ -1,4 +1,4 @@
-import { webConfigFromEnv } from "../../../config.js";
+import { webConfigFromEnv } from "../../../config";
 
 const SAFE_UNAVAILABLE =
   "The triage service is unavailable. Please try again later. If this is an emergency, call 911 or go to the nearest emergency department.";

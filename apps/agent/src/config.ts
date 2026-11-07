@@ -1,5 +1,6 @@
 import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 export type AgentConfig = {
   host: string;
@@ -87,7 +88,10 @@ export function loadEnvFile(filePath = ".env.local"): void {
 }
 
 function defaultDataDir(): string {
-  return resolve(process.cwd(), "take_home_starter");
+  // apps/agent/src -> repo root take_home_starter (cwd-independent)
+  return resolve(
+    fileURLToPath(new URL("../../../take_home_starter", import.meta.url)),
+  );
 }
 
 function intEnv(

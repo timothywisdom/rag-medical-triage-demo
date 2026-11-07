@@ -8,8 +8,8 @@ import type { AddressInfo } from "node:net";
 import { resolve } from "node:path";
 import { configFromEnv } from "../../apps/agent/src/config.js";
 import { startAgentServer } from "../../apps/agent/src/server.js";
-import { POST as askPost } from "../../apps/web/src/app/api/ask/route.js";
-import { GET as patientsGet } from "../../apps/web/src/app/api/patients/route.js";
+import { POST as askPost } from "../../apps/web/src/app/api/ask/route";
+import { GET as patientsGet } from "../../apps/web/src/app/api/patients/route";
 
 const dataDir = resolve(process.cwd(), "take_home_starter");
 
