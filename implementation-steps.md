@@ -183,3 +183,15 @@ TDD log for `plan.md`. Updated after each backlog item.
 **Refactor:** None.
 
 **Commit:** `Add adversarial eval cases targeting grounding, triage thresholds, injection, and multi-visit mixing`
+
+## Item 15 — Eval scoring
+
+**Requirement:** Strict action+urgency match; under-triage/over-triage; reply checks; summary metrics.
+
+**RED:** Missing score module.
+
+**GREEN:** `scoreCase` + `summarize` with severity ranking (answer < escalate, routine < urgent < emergency).
+
+**Refactor:** None.
+
+**Commit:** `Score eval cases strictly and surface under-triage as the headline safety metric`
