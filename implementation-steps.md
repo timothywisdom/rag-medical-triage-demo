@@ -51,3 +51,15 @@ TDD log for `plan.md`. Updated after each backlog item.
 **Refactor:** None.
 
 **Commit:** `Add stub and OpenAI providers behind one service so tests stay deterministic and the model is swappable`
+
+## Item 4 — Retrieval node and no-context escalation
+
+**Requirement:** Escalate without calling the model when no visit summary is available.
+
+**RED:** Missing `buildTriageGraph` / `runTriage`.
+
+**GREEN:** LangGraph with `retrieve` → `escalateNoContext` (canned reply mentioning 911) or placeholder `awaitGeneration`. Trace records context ids; counting fake confirms generateCalls === 0.
+
+**Refactor:** None.
+
+**Commit:** `Escalate without calling the model when no visit summary is available`
