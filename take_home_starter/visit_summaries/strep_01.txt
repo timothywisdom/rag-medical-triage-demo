@@ -1,0 +1,18 @@
+SYNTHETIC VISIT SUMMARY. Fictional patient, for interview use only. Not medical advice.
+
+Patient: Daniel K., 34, male
+Visit type: Virtual video visit with positive rapid strep test from a local pharmacy
+Reason for visit: Sore throat and fever for 2 days. No cough.
+
+Assessment: Strep throat (streptococcal pharyngitis).
+
+Plan:
+- Amoxicillin 500 mg by mouth twice daily for 10 days.
+- Finish the full 10-day course even if you feel better sooner.
+- You are considered contagious until you have taken the antibiotic for 24 hours and have no fever. You may return to work after that.
+- Ibuprofen (Advil) or acetaminophen (Tylenol) may be used for throat pain or fever as directed on the package.
+- Replace your toothbrush after 24 hours on the antibiotic.
+
+When to seek care:
+- Trouble breathing, unable to swallow your own saliva, drooling, or a muffled voice: call 911 or go to the nearest emergency department.
+- A new rash, or no improvement after 3 days of antibiotics: book a follow-up visit.

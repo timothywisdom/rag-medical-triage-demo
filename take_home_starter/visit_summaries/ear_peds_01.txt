@@ -1,0 +1,17 @@
+SYNTHETIC VISIT SUMMARY. Fictional patient, for interview use only. Not medical advice.
+
+Patient: Maya T., 4 years old, female, weight 16 kg (visit attended by parent)
+Visit type: Virtual video visit, with an otoscope image taken at a partner pharmacy
+Reason for visit: Left ear pain and fever (38.5°C) since yesterday. Eating and drinking normally.
+
+Assessment: Left middle ear infection (acute otitis media).
+
+Plan:
+- Amoxicillin suspension 400 mg/5 mL: give 9 mL by mouth twice daily for 5 days.
+- Shake well before each dose and keep in the fridge.
+- Children's acetaminophen (Tylenol) may be given for pain or fever, dosed by weight as directed on the package.
+- Fever and ear pain usually improve within 48 to 72 hours of starting the antibiotic.
+
+When to seek care:
+- Fever still present after 48 to 72 hours on the antibiotic, or swelling or redness behind the ear: seek in-person care the same day.
+- Stiff neck, unusual drowsiness or difficulty waking, or signs of dehydration: go to the nearest emergency department.

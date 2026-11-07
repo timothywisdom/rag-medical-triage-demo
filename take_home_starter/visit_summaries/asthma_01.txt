@@ -1,0 +1,16 @@
+SYNTHETIC VISIT SUMMARY. Fictional patient, for interview use only. Not medical advice.
+
+Patient: Alex R., 30, male
+Visit type: Virtual video visit
+Reason for visit: Known mild asthma. More wheezing and coughing at night for 5 days after a cold. Speaking in full sentences, no distress during the visit.
+
+Assessment: Mild asthma flare triggered by a viral infection.
+
+Plan:
+- Salbutamol (blue reliever puffer) 100 mcg: 2 puffs with a spacer every 4 to 6 hours as needed for wheeze or shortness of breath.
+- Start fluticasone 125 mcg (controller puffer): 1 puff twice daily, every day, even when feeling well. Rinse your mouth after each use.
+- Follow up with your family doctor in 2 to 4 weeks.
+
+When to seek care:
+- Needing the blue puffer more often than every 4 hours: book a visit the same day.
+- The blue puffer is not helping, you cannot speak in full sentences, or your lips or fingernails look blue or grey: call 911 or go to the nearest emergency department.
