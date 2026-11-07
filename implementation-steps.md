@@ -27,3 +27,15 @@ TDD log for `plan.md`. Updated after each backlog item.
 **Refactor:** None.
 
 **Commit:** `Add key/value summary store so retrieval is an O(1) lookup scoped to the caller's ids`
+
+## Item 2 — Response contract
+
+**Requirement:** Shared JSON contract for action, urgency, reply, evidence, reason.
+
+**RED:** Missing `apps/agent/src/contract.js`.
+
+**GREEN:** Zod `TriageResponseSchema` + exported TS types and JSON schema for structured output.
+
+**Refactor:** None.
+
+**Commit:** `Define the triage response contract once so generation, API, and eval agree on shape`
