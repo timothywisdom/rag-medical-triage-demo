@@ -1,8 +1,12 @@
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { loadEnvFile, configFromEnv } from "./config.js";
 import { createTriageRunner } from "./run.js";
 
 async function main(): Promise<void> {
+  const repoRoot = fileURLToPath(new URL("../../..", import.meta.url));
+  loadEnvFile(resolve(repoRoot, ".env.local"));
   loadEnvFile(".env.local");
 
   let values: {

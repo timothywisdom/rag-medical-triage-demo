@@ -1,5 +1,6 @@
 import type { VisitSummary } from "../../store.js";
 import { SYSTEM_V1 } from "./v1.js";
+import { SYSTEM_V2 } from "./v2.js";
 
 export type PromptVersion = "v1" | "v2";
 
@@ -42,5 +43,6 @@ export function buildGenerationPrompt(
 
 function systemFor(version: PromptVersion): string {
   if (version === "v1") return SYSTEM_V1;
+  if (version === "v2") return SYSTEM_V2;
   throw new Error(`Unknown PROMPT_VERSION: ${version}`);
 }

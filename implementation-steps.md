@@ -207,3 +207,15 @@ TDD log for `plan.md`. Updated after each backlog item.
 **Refactor:** None.
 
 **Commit:** `Add a separate eval CLI that persists comparable run logs for before-and-after evidence`
+
+## Item 17 — Prompt v2 + before/after eval logs
+
+**Requirement:** Prompt improvement with measured before/after; v1 reproducible.
+
+**RED:** `Unknown PROMPT_VERSION: v2`.
+
+**GREEN:** `prompts/v2.ts` (seek-care first, brand map, single-visit cite, urgency calibration); OpenAI evals ×3 each; `COMPARISON.md` shows under-triage 0.149→0.080 with accuracy within noise / matched on best pair.
+
+**Refactor:** Fixed eval `.env.local` + runs path resolution from workspace cwd.
+
+**Commit:** `Add prompt v2 targeting baseline failure classes; include before/after eval logs`
