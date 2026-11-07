@@ -39,3 +39,15 @@ TDD log for `plan.md`. Updated after each backlog item.
 **Refactor:** None.
 
 **Commit:** `Define the triage response contract once so generation, API, and eval agree on shape`
+
+## Item 3 — LLM service: stub and OpenAI providers
+
+**Requirement:** Stub echoes Plan + When to seek care; OpenAI behind one retrying service; LIVE=1 smoke for case_04.
+
+**RED:** Missing `apps/agent/src/llm/stub.js`.
+
+**GREEN:** `StubProvider`, `OpenAIProvider`, `LlmService` with 429/5xx backoff, `createLlm`, opt-in `tests/live/openai.test.ts`.
+
+**Refactor:** None.
+
+**Commit:** `Add stub and OpenAI providers behind one service so tests stay deterministic and the model is swappable`
