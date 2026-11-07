@@ -87,3 +87,15 @@ TDD log for `plan.md`. Updated after each backlog item.
 **Refactor:** None.
 
 **Commit:** `Reject drafts whose evidence is not copied verbatim from the cited summary`
+
+## Item 7 — LLM-as-judge faithfulness check
+
+**Requirement:** Fail-closed judge; quote failures short-circuit the judge call.
+
+**RED:** Missing judge module.
+
+**GREEN:** `buildJudgePrompt` / `judgeDraft`; graph `verifyAndJudge` node; grounding-off still passes drafts through.
+
+**Refactor:** Quote failure skips judge (performance).
+
+**Commit:** `Add fail-closed LLM judge so replies cannot add claims beyond the quoted evidence`
