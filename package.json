@@ -10,6 +10,8 @@
     "test:e2e": "playwright test",
     "dev": "concurrently -n agent,web -c cyan,magenta \"npm run dev -w @maple/agent\" \"npm run dev -w @maple/web\"",
     "ask": "npm run ask -w @maple/agent --",
+    "eval": "npm run eval -w @maple/eval --",
+    "eval:compare": "npm run eval:compare -w @maple/eval --",
     "typecheck": "tsc -p apps/agent --noEmit && tsc -p apps/web --noEmit"
   },
   "devDependencies": {

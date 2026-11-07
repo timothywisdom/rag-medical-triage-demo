@@ -195,3 +195,15 @@ TDD log for `plan.md`. Updated after each backlog item.
 **Refactor:** None.
 
 **Commit:** `Score eval cases strictly and surface under-triage as the headline safety metric`
+
+## Item 16 — Eval runner CLI with persisted run logs
+
+**Requirement:** Separate eval app; persist JSON+MD logs; compare two runs.
+
+**RED:** Missing runner module.
+
+**GREEN:** `runEval` / `compareRuns` / CLI entrypoints; root `npm run eval` scripts.
+
+**Refactor:** None.
+
+**Commit:** `Add a separate eval CLI that persists comparable run logs for before-and-after evidence`
