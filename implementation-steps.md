@@ -219,3 +219,13 @@ TDD log for `plan.md`. Updated after each backlog item.
 **Refactor:** Fixed eval `.env.local` + runs path resolution from workspace cwd.
 
 **Commit:** `Add prompt v2 targeting baseline failure classes; include before/after eval logs`
+
+## Item 18 — README
+
+**Requirement:** Document setup, config, architecture, scaling, how to run, eval results, limits.
+
+**RED:** N/A (docs checklist).
+
+**GREEN:** Root `README.md` covering the plan checklist.
+
+**Commit:** `Document setup, design decisions, and eval results`
