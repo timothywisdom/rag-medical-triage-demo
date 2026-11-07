@@ -99,3 +99,15 @@ TDD log for `plan.md`. Updated after each backlog item.
 **Refactor:** Quote failure skips judge (performance).
 
 **Commit:** `Add fail-closed LLM judge so replies cannot add claims beyond the quoted evidence`
+
+## Item 8 — Grounding retry loop
+
+**Requirement:** Retry generation with verbatim feedback; never lower urgency on escalate.
+
+**RED:** Single-pass grounding; generateCalls stayed 1; groundingAttempts not in trace.
+
+**GREEN:** Conditional back-edge to generate while attempts ≤ maxRetries; feedback includes "verbatim" + failed quote; exhausted → escalate keeping draft urgency.
+
+**Refactor:** Shared ungrounded escalation helper.
+
+**Commit:** `Retry generation with grounding feedback before escalating, never lowering urgency`

@@ -25,6 +25,8 @@ export type TriageResult = {
   trace: TriageStateType["trace"];
 };
 
+type Route = "escalateNoContext" | "generate" | "verifyAndJudge" | "escalateUngrounded" | typeof END;
+
 export function buildTriageGraph(deps: TriageDeps) {
   const retrieve = async (state: TriageStateType) => {
     const { found, missing } = deps.store.getMany(state.summaryIds);
@@ -44,18 +46,22 @@ export function buildTriageGraph(deps: TriageDeps) {
   });
 
   const generate = async (state: TriageStateType) => {
+    const feedback = state.groundingFeedback
+      ? `Strengthen evidence quotes to be verbatim from the summaries.\n${state.groundingFeedback}`
+      : undefined;
     const prompt = buildGenerationPrompt(
       state.question,
       state.context,
       deps.config.promptVersion,
-      state.groundingFeedback || undefined,
+      feedback,
     );
+    const attempts = state.groundingAttempts + 1;
     try {
       const raw = await deps.llm.generate({
         question: state.question,
         summaries: state.context,
         systemPrompt: prompt.system,
-        feedback: state.groundingFeedback || undefined,
+        feedback,
       });
       const parsed = TriageResponseSchema.safeParse(raw);
       if (!parsed.success) {
@@ -63,21 +69,24 @@ export function buildTriageGraph(deps: TriageDeps) {
         return {
           draft: invalid,
           response: invalid,
-          groundingAttempts: state.groundingAttempts + 1,
+          groundingAttempts: attempts,
+          groundingFeedback: "",
           trace: {
             ...state.trace,
             generateCalls: state.trace.generateCalls + 1,
+            groundingAttempts: attempts,
           },
         };
       }
       return {
         draft: parsed.data,
         response: null,
-        groundingAttempts: state.groundingAttempts + 1,
+        groundingAttempts: attempts,
         groundingFeedback: "",
         trace: {
           ...state.trace,
           generateCalls: state.trace.generateCalls + 1,
+          groundingAttempts: attempts,
         },
       };
     } catch {
@@ -85,10 +94,11 @@ export function buildTriageGraph(deps: TriageDeps) {
       return {
         draft: invalid,
         response: invalid,
-        groundingAttempts: state.groundingAttempts + 1,
+        groundingAttempts: attempts,
         trace: {
           ...state.trace,
           generateCalls: state.trace.generateCalls + 1,
+          groundingAttempts: attempts,
         },
       };
     }
@@ -99,60 +109,90 @@ export function buildTriageGraph(deps: TriageDeps) {
     if (!draft) {
       return { response: invalidModelEscalation() };
     }
-    // Already escalated due to invalid model output.
     if (state.response) {
       return {};
     }
 
     if (!deps.config.groundingCheck) {
-      return { response: draft };
-    }
-
-    const quotes = verifyQuotes(draft, state.context);
-    const traceBase = {
-      ...state.trace,
-      quoteCheckRan: true,
-    };
-    if (!quotes.passed) {
       return {
-        response: ungroundedEscalation(draft, quotes.failures.join("; ")),
-        groundingFeedback: quotes.failures.join("\n"),
+        response: draft,
         trace: {
-          ...traceBase,
-          groundingFailures: [
-            ...traceBase.groundingFailures,
-            ...quotes.failures,
-          ],
+          ...state.trace,
+          groundingAttempts: state.groundingAttempts,
         },
       };
     }
 
-    const verdict = await judgeDraft(
-      deps.llm,
-      draft,
-      state.question,
-      state.context,
-    );
-    const judgeTrace = {
-      ...traceBase,
-      judgeCalls: traceBase.judgeCalls + 1,
+    const quotes = verifyQuotes(draft, state.context);
+    let failures = [...quotes.failures];
+    let judgeCalls = state.trace.judgeCalls;
+
+    if (quotes.passed) {
+      const verdict = await judgeDraft(
+        deps.llm,
+        draft,
+        state.question,
+        state.context,
+      );
+      judgeCalls += 1;
+      if (!verdict.supported) {
+        failures = [...failures, ...verdict.unsupportedClaims];
+      }
+    }
+
+    const trace = {
+      ...state.trace,
+      quoteCheckRan: true,
+      judgeCalls,
+      groundingAttempts: state.groundingAttempts,
+      groundingFailures: [...state.trace.groundingFailures, ...failures],
     };
-    if (!verdict.supported) {
-      const reasons = verdict.unsupportedClaims;
+
+    if (failures.length === 0) {
+      return { response: draft, groundingFeedback: "", trace };
+    }
+
+    const canRetry =
+      state.groundingAttempts <= deps.config.groundingMaxRetries;
+    if (canRetry) {
       return {
-        response: ungroundedEscalation(draft, reasons.join("; ")),
-        groundingFeedback: reasons.join("\n"),
-        trace: {
-          ...judgeTrace,
-          groundingFailures: [...judgeTrace.groundingFailures, ...reasons],
-        },
+        response: null,
+        groundingFeedback: failures.join("\n"),
+        trace,
       };
     }
 
     return {
-      response: draft,
-      trace: judgeTrace,
+      response: ungroundedEscalation(draft, failures.join("; ")),
+      groundingFeedback: failures.join("\n"),
+      trace,
     };
+  };
+
+  const escalateUngrounded = async (state: TriageStateType) => {
+    const draft = state.draft ?? invalidModelEscalation();
+    return {
+      response: ungroundedEscalation(
+        draft,
+        state.groundingFeedback || "grounding check failed",
+      ),
+    };
+  };
+
+  const afterRetrieve = (state: TriageStateType): Route =>
+    state.context.length === 0 ? "escalateNoContext" : "generate";
+
+  const afterGenerate = (state: TriageStateType): Route =>
+    state.response ? END : "verifyAndJudge";
+
+  const afterVerify = (state: TriageStateType): Route => {
+    if (state.response) return END;
+    if (state.groundingFeedback) {
+      return state.groundingAttempts <= deps.config.groundingMaxRetries
+        ? "generate"
+        : "escalateUngrounded";
+    }
+    return END;
   };
 
   return new StateGraph(TriageState)
@@ -160,15 +200,13 @@ export function buildTriageGraph(deps: TriageDeps) {
     .addNode("escalateNoContext", escalateNoContext)
     .addNode("generate", generate)
     .addNode("verifyAndJudge", verifyAndJudge)
+    .addNode("escalateUngrounded", escalateUngrounded)
     .addEdge(START, "retrieve")
-    .addConditionalEdges("retrieve", (state) =>
-      state.context.length === 0 ? "escalateNoContext" : "generate",
-    )
+    .addConditionalEdges("retrieve", afterRetrieve)
     .addEdge("escalateNoContext", END)
-    .addConditionalEdges("generate", (state) =>
-      state.response ? END : "verifyAndJudge",
-    )
-    .addEdge("verifyAndJudge", END)
+    .addConditionalEdges("generate", afterGenerate)
+    .addConditionalEdges("verifyAndJudge", afterVerify)
+    .addEdge("escalateUngrounded", END)
     .compile();
 }
 
