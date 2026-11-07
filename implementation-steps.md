@@ -111,3 +111,15 @@ TDD log for `plan.md`. Updated after each backlog item.
 **Refactor:** Shared ungrounded escalation helper.
 
 **Commit:** `Retry generation with grounding feedback before escalating, never lowering urgency`
+
+## Item 9 — Grounding check disabled mode
+
+**Requirement:** GROUNDING_CHECK=0 trusts draft when context exists; still escalates with no context.
+
+**RED:** N/A at write time — behaviour already present from item 7 wiring (`if (!deps.config.groundingCheck)`). Acceptance test still written and run first against current code (passed immediately).
+
+**GREEN:** Confirmed: paraphrased draft returned unchanged; judgeCalls=0; quoteCheckRan=false; empty ids still escalate.
+
+**Refactor:** None.
+
+**Commit:** `Allow disabling real-time grounding to trade safety checks for latency`
