@@ -1,0 +1,37 @@
+{
+  "asthma_01": {
+    "patientId": "alex_r",
+    "displayName": "Alex R.",
+    "visitDate": "2026-10-20"
+  },
+  "ear_peds_01": {
+    "patientId": "maya_t",
+    "displayName": "Maya T.",
+    "visitDate": "2026-10-18"
+  },
+  "eczema_01": {
+    "patientId": "jordan_l",
+    "displayName": "Jordan L.",
+    "visitDate": "2026-10-15"
+  },
+  "strep_01": {
+    "patientId": "daniel_k",
+    "displayName": "Daniel K.",
+    "visitDate": "2026-10-22"
+  },
+  "uti_01": {
+    "patientId": "priya_s",
+    "displayName": "Priya S.",
+    "visitDate": "2026-10-10"
+  },
+  "strep_02": {
+    "patientId": "multi_01",
+    "displayName": "Sam Multi",
+    "visitDate": "2026-10-25"
+  },
+  "uti_02": {
+    "patientId": "multi_01",
+    "displayName": "Sam Multi",
+    "visitDate": "2026-10-05"
+  }
+}
