@@ -75,3 +75,15 @@ TDD log for `plan.md`. Updated after each backlog item.
 **Refactor:** None.
 
 **Commit:** `Generate drafts from labelled multi-visit context with a versioned prompt`
+
+## Item 6 — Deterministic verbatim-quote check
+
+**Requirement:** Reject drafts whose evidence is not copied verbatim from the cited summary.
+
+**RED:** Missing `verifyQuotes`.
+
+**GREEN:** Normalised substring match; empty evidence fails for answers, passes for escalations.
+
+**Refactor:** None.
+
+**Commit:** `Reject drafts whose evidence is not copied verbatim from the cited summary`
