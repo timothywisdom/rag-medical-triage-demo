@@ -43,6 +43,7 @@ describe("Feature: App-level configuration", () => {
     const web = webConfigFromEnv({});
     expect(web).toEqual({
       agentServiceUrl: "http://127.0.0.1:4001",
+      agentTimeoutMs: 30_000,
     });
     expect(web).not.toHaveProperty("llmProvider");
     expect(web).not.toHaveProperty("openaiApiKey");

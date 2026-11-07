@@ -147,3 +147,15 @@ TDD log for `plan.md`. Updated after each backlog item.
 **Refactor:** Shared runner used by both adapters.
 
 **Commit:** `Run the agent as its own stateless service and CLI so it can scale and be scripted apart from the web app`
+
+## Item 12 — Web forwarding route
+
+**Requirement:** Thin Next.js routes forward to the agent; validate input; map transport failures to 502/504 with safe emergency message.
+
+**RED:** Missing `/api/ask` and `/api/patients` routes.
+
+**GREEN:** Handlers with AbortSignal.timeout; web config gains `agentTimeoutMs`; no agent imports at runtime.
+
+**Refactor:** Shared unavailable message.
+
+**Commit:** `Make the web app a thin client of the agent service so either side can be deployed and scaled alone`
