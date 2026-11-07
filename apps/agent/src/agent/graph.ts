@@ -3,6 +3,7 @@ import type { AgentConfig } from "../config.js";
 import { TriageResponseSchema, type TriageResponse } from "../contract.js";
 import type { LlmProvider } from "../llm/types.js";
 import type { SummaryStore } from "../store.js";
+import { applyGuardrails } from "./guardrails.js";
 import { judgeDraft } from "./grounding/judge.js";
 import { verifyQuotes } from "./grounding/quotes.js";
 import { buildGenerationPrompt } from "./prompts/index.js";
@@ -230,7 +231,7 @@ export async function runTriage(
   }
 
   return {
-    response: finalState.response,
+    response: applyGuardrails(finalState.response),
     trace: finalState.trace,
   };
 }

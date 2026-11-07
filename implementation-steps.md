@@ -123,3 +123,15 @@ TDD log for `plan.md`. Updated after each backlog item.
 **Refactor:** None.
 
 **Commit:** `Allow disabling real-time grounding to trade safety checks for latency`
+
+## Item 10 — Safety guardrails in finalize
+
+**Requirement:** Emergency replies name 911; non-routine answers become escalate; never lower urgency.
+
+**RED:** Missing `applyGuardrails`.
+
+**GREEN:** Pure `applyGuardrails` + applied in `runTriage` before returning; graph emergency draft test passes.
+
+**Refactor:** None.
+
+**Commit:** `Enforce emergency and same-day instructions in code so a prompt regression cannot drop them`
