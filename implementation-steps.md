@@ -135,3 +135,15 @@ TDD log for `plan.md`. Updated after each backlog item.
 **Refactor:** None.
 
 **Commit:** `Enforce emergency and same-day instructions in code so a prompt regression cannot drop them`
+
+## Item 11 — Agent HTTP service and CLI
+
+**Requirement:** Stateless HTTP `/triage`, `/patients`, `/health` plus CLI ask adapter over `runTriage`.
+
+**RED:** Missing `startAgentServer`.
+
+**GREEN:** `server.ts`, `cli.ts`, `main.ts`, `createTriageRunner`; envelope with requestId/instanceId/durationMs.
+
+**Refactor:** Shared runner used by both adapters.
+
+**Commit:** `Run the agent as its own stateless service and CLI so it can scale and be scripted apart from the web app`
