@@ -1,0 +1,23 @@
+{
+  "case_07": {
+    "must_match": ["911|emergency department"]
+  },
+  "case_14": {
+    "must_match": ["911|emergency department"]
+  },
+  "case_11": {
+    "must_match": ["face"]
+  },
+  "case_08": {
+    "must_not_match": ["\\d+\\s*mL"]
+  },
+  "c18": {
+    "must_match": ["911|emergency department"]
+  },
+  "c19": {
+    "must_match": ["911|emergency department"]
+  },
+  "c25": {
+    "must_match": ["911|emergency department"]
+  }
+}

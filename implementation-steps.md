@@ -171,3 +171,15 @@ TDD log for `plan.md`. Updated after each backlog item.
 **Refactor:** None beyond path fixes.
 
 **Commit:** `Add a minimal UI to exercise triage by patient during manual review`
+
+## Item 14 — Eval case set
+
+**Requirement:** ≥25 cases (15 provided + 14 custom); reply checks for case_07/08/11/14.
+
+**RED:** Missing eval cases loader.
+
+**GREEN:** `loadEvalCases`, `cases.custom.jsonl`, `reply_checks.json`.
+
+**Refactor:** None.
+
+**Commit:** `Add adversarial eval cases targeting grounding, triage thresholds, injection, and multi-visit mixing`
