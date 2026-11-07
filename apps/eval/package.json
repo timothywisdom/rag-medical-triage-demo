@@ -1,0 +1,17 @@
+{
+  "name": "@maple/eval",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "eval": "tsx src/main.ts",
+    "eval:compare": "tsx src/compare.ts"
+  },
+  "dependencies": {
+    "@maple/agent": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}
