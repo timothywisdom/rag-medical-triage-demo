@@ -1,8 +1,9 @@
 import { END, START, StateGraph } from "@langchain/langgraph";
 import type { AgentConfig } from "../config.js";
-import type { TriageResponse } from "../contract.js";
+import { TriageResponseSchema, type TriageResponse } from "../contract.js";
 import type { LlmProvider } from "../llm/types.js";
 import type { SummaryStore } from "../store.js";
+import { buildGenerationPrompt } from "./prompts/index.js";
 import { emptyTrace, TriageState, type TriageStateType } from "./state.js";
 import { noContextEscalation } from "./templates.js";
 
@@ -40,29 +41,66 @@ export function buildTriageGraph(deps: TriageDeps) {
     draft: noContextEscalation(),
   });
 
-  // Placeholder until generation (item 5) is wired.
-  const awaitGeneration = async (state: TriageStateType) => ({
-    response: {
-      action: "escalate" as const,
-      urgency: "routine" as const,
-      reply: "Generation not yet implemented.",
-      evidence: [],
-      reason: "Placeholder path after retrieval.",
-    },
-    draft: null,
-    trace: state.trace,
-  });
+  const generate = async (state: TriageStateType) => {
+    const prompt = buildGenerationPrompt(
+      state.question,
+      state.context,
+      deps.config.promptVersion,
+      state.groundingFeedback || undefined,
+    );
+    try {
+      const raw = await deps.llm.generate({
+        question: state.question,
+        summaries: state.context,
+        systemPrompt: prompt.system,
+        feedback: state.groundingFeedback || undefined,
+      });
+      const parsed = TriageResponseSchema.safeParse(raw);
+      if (!parsed.success) {
+        const invalid = invalidModelEscalation();
+        return {
+          draft: invalid,
+          response: invalid,
+          groundingAttempts: state.groundingAttempts + 1,
+          trace: {
+            ...state.trace,
+            generateCalls: state.trace.generateCalls + 1,
+          },
+        };
+      }
+      return {
+        draft: parsed.data,
+        response: parsed.data,
+        groundingAttempts: state.groundingAttempts + 1,
+        trace: {
+          ...state.trace,
+          generateCalls: state.trace.generateCalls + 1,
+        },
+      };
+    } catch {
+      const invalid = invalidModelEscalation();
+      return {
+        draft: invalid,
+        response: invalid,
+        groundingAttempts: state.groundingAttempts + 1,
+        trace: {
+          ...state.trace,
+          generateCalls: state.trace.generateCalls + 1,
+        },
+      };
+    }
+  };
 
   return new StateGraph(TriageState)
     .addNode("retrieve", retrieve)
     .addNode("escalateNoContext", escalateNoContext)
-    .addNode("awaitGeneration", awaitGeneration)
+    .addNode("generate", generate)
     .addEdge(START, "retrieve")
     .addConditionalEdges("retrieve", (state) =>
-      state.context.length === 0 ? "escalateNoContext" : "awaitGeneration",
+      state.context.length === 0 ? "escalateNoContext" : "generate",
     )
     .addEdge("escalateNoContext", END)
-    .addEdge("awaitGeneration", END)
+    .addEdge("generate", END)
     .compile();
 }
 
@@ -88,5 +126,18 @@ export async function runTriage(
   return {
     response: finalState.response,
     trace: finalState.trace,
+  };
+}
+
+function invalidModelEscalation(): TriageResponse {
+  return {
+    action: "escalate",
+    urgency: "routine",
+    reply: noContextEscalation().reply.replace(
+      "I couldn't find a visit summary for your question",
+      "I couldn't produce a reliable answer from the visit summary",
+    ),
+    evidence: [],
+    reason: "Invalid model response; escalating to a clinician.",
   };
 }

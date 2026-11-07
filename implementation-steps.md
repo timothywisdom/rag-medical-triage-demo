@@ -63,3 +63,15 @@ TDD log for `plan.md`. Updated after each backlog item.
 **Refactor:** None.
 
 **Commit:** `Escalate without calling the model when no visit summary is available`
+
+## Item 5 — Generation node (prompt v1)
+
+**Requirement:** Generate drafts from labelled multi-visit context with versioned prompt; invalid model output → escalate.
+
+**RED:** Missing prompts module.
+
+**GREEN:** `prompts/v1.ts` + `buildGenerationPrompt`; graph `generate` node with zod validation fallback.
+
+**Refactor:** None.
+
+**Commit:** `Generate drafts from labelled multi-visit context with a versioned prompt`
