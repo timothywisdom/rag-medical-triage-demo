@@ -88,7 +88,7 @@ export async function runEval(options: {
   writeFileSync(mdPath, renderMarkdown(log));
 
   process.stdout.write(
-    `accuracy=${metrics.accuracy.toFixed(3)} underTriage=${metrics.underTriageRate.toFixed(3)} emergencyRecall=${metrics.emergencyRecall ?? "n/a"}\n`,
+    `accuracy=${metrics.accuracy.toFixed(3)} action=${metrics.actionAccuracy.toFixed(3)} urgency=${metrics.urgencyAccuracy.toFixed(3)} underTriage=${metrics.underTriageRate.toFixed(3)} emergencyRecall=${metrics.emergencyRecall ?? "n/a"}\n`,
   );
 
   return { jsonPath, mdPath, log };
@@ -100,6 +100,8 @@ export function compareRuns(
     results: Array<{ caseId: string; correct: boolean }>;
     metrics: {
       accuracy: number;
+      actionAccuracy: number;
+      urgencyAccuracy: number;
       underTriageRate: number;
       emergencyRecall: number | null;
     };
@@ -109,6 +111,8 @@ export function compareRuns(
     results: Array<{ caseId: string; correct: boolean }>;
     metrics: {
       accuracy: number;
+      actionAccuracy: number;
+      urgencyAccuracy: number;
       underTriageRate: number;
       emergencyRecall: number | null;
     };
@@ -130,6 +134,16 @@ export function compareRuns(
     `| metric | before | after | delta |`,
     `|---|---:|---:|---:|`,
     row("accuracy", before.metrics.accuracy, after.metrics.accuracy),
+    row(
+      "actionAccuracy",
+      before.metrics.actionAccuracy,
+      after.metrics.actionAccuracy,
+    ),
+    row(
+      "urgencyAccuracy",
+      before.metrics.urgencyAccuracy,
+      after.metrics.urgencyAccuracy,
+    ),
     row(
       "underTriageRate",
       before.metrics.underTriageRate,
@@ -167,6 +181,8 @@ function renderMarkdown(log: EvalRunLog): string {
     `| metric | value |`,
     `|---|---:|`,
     `| accuracy | ${log.metrics.accuracy.toFixed(3)} |`,
+    `| actionAccuracy | ${log.metrics.actionAccuracy.toFixed(3)} |`,
+    `| urgencyAccuracy | ${log.metrics.urgencyAccuracy.toFixed(3)} |`,
     `| underTriageRate | ${log.metrics.underTriageRate.toFixed(3)} |`,
     `| overTriageRate | ${log.metrics.overTriageRate.toFixed(3)} |`,
     `| emergencyRecall | ${log.metrics.emergencyRecall ?? "n/a"} |`,
@@ -176,10 +192,16 @@ function renderMarkdown(log: EvalRunLog): string {
     failing.length === 0
       ? "- none"
       : failing
-          .map(
-            (f) =>
-              `- ${f.caseId}: expected ${f.expected_action}/${f.expected_urgency}, got ${f.actual_action}/${f.actual_urgency}`,
-          )
+          .map((f) => {
+            const bits = [
+              `expected ${f.expected_action}/${f.expected_urgency}`,
+              `got ${f.actual_action}/${f.actual_urgency}`,
+            ];
+            if (!f.actionMatch) bits.push("action✗");
+            if (!f.urgencyMatch) bits.push("urgency✗");
+            if (f.replyCheckFailed) bits.push("reply✗");
+            return `- ${f.caseId}: ${bits.join(", ")}`;
+          })
           .join("\n"),
     "",
   ].join("\n");

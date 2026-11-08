@@ -49,7 +49,13 @@ describe("Feature: Eval runner", () => {
         { caseId: "a", correct: true },
         { caseId: "b", correct: false },
       ],
-      metrics: { accuracy: 0.5, underTriageRate: 0.1, emergencyRecall: 1 },
+      metrics: {
+        accuracy: 0.5,
+        actionAccuracy: 0.5,
+        urgencyAccuracy: 1,
+        underTriageRate: 0.1,
+        emergencyRecall: 1,
+      },
     };
     const after = {
       label: "after",
@@ -57,10 +63,18 @@ describe("Feature: Eval runner", () => {
         { caseId: "a", correct: true },
         { caseId: "b", correct: true },
       ],
-      metrics: { accuracy: 1, underTriageRate: 0, emergencyRecall: 1 },
+      metrics: {
+        accuracy: 1,
+        actionAccuracy: 1,
+        urgencyAccuracy: 1,
+        underTriageRate: 0,
+        emergencyRecall: 1,
+      },
     };
     const report = compareRuns(before, after);
     expect(report).toMatch(/accuracy/i);
+    expect(report).toMatch(/actionAccuracy/i);
+    expect(report).toMatch(/urgencyAccuracy/i);
     expect(report).toMatch(/b/);
     expect(report).toMatch(/flipped|improved|incorrect → correct/i);
   });

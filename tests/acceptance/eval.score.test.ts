@@ -35,15 +35,44 @@ describe("Feature: Eval scoring", () => {
     expect(
       scoreCase(baseCase(), result()).correct,
     ).toBe(true);
-    expect(
+    const overAction = scoreCase(
+      baseCase({
+        expected_action: "answer",
+        expected_urgency: "routine",
+      }),
+      result({ action: "escalate", urgency: "routine" }),
+    );
+    expect(overAction.correct).toBe(false);
+    expect(overAction.actionMatch).toBe(false);
+    expect(overAction.urgencyMatch).toBe(true);
+  });
+
+  it("Scenario: Action and urgency accuracies are reported separately", () => {
+    const scores = [
+      scoreCase(
+        baseCase({ expected_action: "answer", expected_urgency: "routine" }),
+        result({ action: "answer", urgency: "routine" }),
+      ),
+      scoreCase(
+        baseCase({ expected_action: "answer", expected_urgency: "routine" }),
+        result({ action: "escalate", urgency: "routine" }),
+      ),
+      scoreCase(
+        baseCase({ expected_action: "escalate", expected_urgency: "urgent" }),
+        result({ action: "escalate", urgency: "emergency" }),
+      ),
       scoreCase(
         baseCase({
-          expected_action: "answer",
-          expected_urgency: "routine",
+          expected_action: "escalate",
+          expected_urgency: "emergency",
         }),
-        result({ action: "escalate", urgency: "routine" }),
-      ).correct,
-    ).toBe(false);
+        result({ action: "escalate", urgency: "emergency" }),
+      ),
+    ];
+    const summary = summarize(scores);
+    expect(summary.actionAccuracy).toBe(0.75); // 3/4
+    expect(summary.urgencyAccuracy).toBe(0.75); // 3/4
+    expect(summary.accuracy).toBe(0.5); // 2/4 joint
   });
 
   it("Scenario: Under-triage is flagged as a safety failure", () => {
@@ -101,6 +130,8 @@ describe("Feature: Eval scoring", () => {
     const scores = Array.from({ length: 10 }, (_, i) => ({
       caseId: `c${i}`,
       correct: i < 8,
+      actionMatch: i < 9,
+      urgencyMatch: i < 8 || i === 9,
       underTriage: i === 8,
       overTriage: false,
       replyCheckFailed: false,
@@ -116,6 +147,8 @@ describe("Feature: Eval scoring", () => {
 
     const summary = summarize(scores);
     expect(summary.accuracy).toBe(0.8);
+    expect(summary.actionAccuracy).toBe(0.9);
+    expect(summary.urgencyAccuracy).toBe(0.9);
     expect(summary.underTriageRate).toBe(0.1);
     expect(summary.emergencyRecall).toBeDefined();
   });

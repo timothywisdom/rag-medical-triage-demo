@@ -21,6 +21,8 @@ describe("Feature: Prompt v2 rules", () => {
     expect(prompt.system).toMatch(/brand names to generics/i);
     expect(prompt.system).toMatch(/one visit/i);
     expect(prompt.system).toMatch(/cite only that visit/i);
+    expect(prompt.system).toMatch(/routine urgency/i);
+    expect(prompt.system).toMatch(/conflict/i);
   });
 
   it("Scenario: v1 remains available for reproducing the baseline", () => {

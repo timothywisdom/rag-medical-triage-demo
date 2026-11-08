@@ -7,6 +7,8 @@ const actionRank = { answer: 0, escalate: 1 } as const;
 export type CaseScore = {
   caseId: string;
   correct: boolean;
+  actionMatch: boolean;
+  urgencyMatch: boolean;
   underTriage: boolean;
   overTriage: boolean;
   replyCheckFailed: boolean;
@@ -17,11 +19,15 @@ export type CaseScore = {
 
 export type ScoreSummary = {
   accuracy: number;
+  actionAccuracy: number;
+  urgencyAccuracy: number;
   underTriageRate: number;
   overTriageRate: number;
   emergencyRecall: number | null;
   total: number;
   correct: number;
+  actionCorrect: number;
+  urgencyCorrect: number;
   underTriage: number;
   overTriage: number;
 };
@@ -45,6 +51,8 @@ export function scoreCase(
   return {
     caseId: evalCase.case_id,
     correct,
+    actionMatch,
+    urgencyMatch,
     underTriage: actualSeverity < expectedSeverity,
     overTriage: actualSeverity > expectedSeverity,
     replyCheckFailed,
@@ -57,6 +65,8 @@ export function scoreCase(
 export function summarize(scores: CaseScore[]): ScoreSummary {
   const total = scores.length;
   const correct = scores.filter((s) => s.correct).length;
+  const actionCorrect = scores.filter((s) => s.actionMatch).length;
+  const urgencyCorrect = scores.filter((s) => s.urgencyMatch).length;
   const underTriage = scores.filter((s) => s.underTriage).length;
   const overTriage = scores.filter((s) => s.overTriage).length;
   const expectedEmergencies = scores.filter((s) => s.expectedEmergency);
@@ -66,6 +76,8 @@ export function summarize(scores: CaseScore[]): ScoreSummary {
 
   return {
     accuracy: total === 0 ? 0 : correct / total,
+    actionAccuracy: total === 0 ? 0 : actionCorrect / total,
+    urgencyAccuracy: total === 0 ? 0 : urgencyCorrect / total,
     underTriageRate: total === 0 ? 0 : underTriage / total,
     overTriageRate: total === 0 ? 0 : overTriage / total,
     emergencyRecall:
@@ -74,6 +86,8 @@ export function summarize(scores: CaseScore[]): ScoreSummary {
         : emergencyHits / expectedEmergencies.length,
     total,
     correct,
+    actionCorrect,
+    urgencyCorrect,
     underTriage,
     overTriage,
   };
