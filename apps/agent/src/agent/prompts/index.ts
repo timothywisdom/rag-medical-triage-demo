@@ -32,10 +32,10 @@ export function buildGenerationPrompt(
   if (feedback?.trim()) {
     parts.push(
       "",
-      "<grounding_feedback>",
-      "Previous attempt failed grounding. Strengthen evidence quotes to be verbatim from the summaries.",
+      "<retry_feedback>",
+      "Previous attempt failed. Fix the issues below and try again.",
       feedback,
-      "</grounding_feedback>",
+      "</retry_feedback>",
     );
   }
 

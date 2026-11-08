@@ -102,7 +102,7 @@ export function buildTriageGraph(deps: TriageDeps): TriageCompiledGraph {
 
   const generate = async (state: TriageStateType) => {
     const feedback = state.groundingFeedback
-      ? `Strengthen evidence quotes to be verbatim from the summaries.\n${state.groundingFeedback}`
+      ? state.groundingFeedback
       : undefined;
     const prompt = buildGenerationPrompt(
       state.question,
@@ -111,6 +111,13 @@ export function buildTriageGraph(deps: TriageDeps): TriageCompiledGraph {
       feedback,
     );
     const attempts = state.groundingAttempts + 1;
+    const canRetry = attempts <= deps.config.groundingMaxRetries;
+    const baseTrace = {
+      ...state.trace,
+      generateCalls: state.trace.generateCalls + 1,
+      groundingAttempts: attempts,
+    };
+
     try {
       const raw = await deps.llm.generate({
         question: state.question,
@@ -120,16 +127,36 @@ export function buildTriageGraph(deps: TriageDeps): TriageCompiledGraph {
       });
       const parsed = TriageResponseSchema.safeParse(raw);
       if (!parsed.success) {
+        const detail = formatZodIssues(parsed.error);
+        const schemaFeedback =
+          `Previous output failed the TriageResponse schema. Return valid JSON with action (answer|escalate), urgency (routine|urgent|emergency), reply, evidence[{summaryId,quote}], and reason.\n${detail}`;
+        if (canRetry) {
+          return {
+            draft: null,
+            response: null,
+            groundingAttempts: attempts,
+            groundingFeedback: schemaFeedback,
+            trace: {
+              ...baseTrace,
+              groundingFailures: [
+                ...state.trace.groundingFailures,
+                `schema: ${detail}`,
+              ],
+            },
+          };
+        }
         const invalid = invalidModelEscalation();
         return {
           draft: invalid,
           response: invalid,
           groundingAttempts: attempts,
-          groundingFeedback: "",
+          groundingFeedback: schemaFeedback,
           trace: {
-            ...state.trace,
-            generateCalls: state.trace.generateCalls + 1,
-            groundingAttempts: attempts,
+            ...baseTrace,
+            groundingFailures: [
+              ...state.trace.groundingFailures,
+              `schema: ${detail}`,
+            ],
           },
         };
       }
@@ -138,22 +165,40 @@ export function buildTriageGraph(deps: TriageDeps): TriageCompiledGraph {
         response: null,
         groundingAttempts: attempts,
         groundingFeedback: "",
-        trace: {
-          ...state.trace,
-          generateCalls: state.trace.generateCalls + 1,
-          groundingAttempts: attempts,
-        },
+        trace: baseTrace,
       };
-    } catch {
+    } catch (error) {
+      const detail =
+        error instanceof Error ? error.message : "LLM generate failed";
+      const failFeedback =
+        `Previous generation attempt failed (${detail}). Return a valid TriageResponse JSON object.`;
+      if (canRetry) {
+        return {
+          draft: null,
+          response: null,
+          groundingAttempts: attempts,
+          groundingFeedback: failFeedback,
+          trace: {
+            ...baseTrace,
+            groundingFailures: [
+              ...state.trace.groundingFailures,
+              `generate_error: ${detail}`,
+            ],
+          },
+        };
+      }
       const invalid = invalidModelEscalation();
       return {
         draft: invalid,
         response: invalid,
         groundingAttempts: attempts,
+        groundingFeedback: failFeedback,
         trace: {
-          ...state.trace,
-          generateCalls: state.trace.generateCalls + 1,
-          groundingAttempts: attempts,
+          ...baseTrace,
+          groundingFailures: [
+            ...state.trace.groundingFailures,
+            `generate_error: ${detail}`,
+          ],
         },
       };
     }
@@ -207,19 +252,24 @@ export function buildTriageGraph(deps: TriageDeps): TriageCompiledGraph {
       return { response: draft, groundingFeedback: "", trace };
     }
 
+    const groundingFeedback = [
+      "Strengthen evidence quotes to be verbatim from the summaries.",
+      ...failures,
+    ].join("\n");
+
     const canRetry =
       state.groundingAttempts <= deps.config.groundingMaxRetries;
     if (canRetry) {
       return {
         response: null,
-        groundingFeedback: failures.join("\n"),
+        groundingFeedback,
         trace,
       };
     }
 
     return {
       response: ungroundedEscalation(draft, failures.join("; ")),
-      groundingFeedback: failures.join("\n"),
+      groundingFeedback,
       trace,
     };
   };
@@ -237,8 +287,15 @@ export function buildTriageGraph(deps: TriageDeps): TriageCompiledGraph {
   const afterRetrieve = (state: TriageStateType): Route =>
     state.context.length === 0 ? "escalateNoContext" : "generate";
 
-  const afterGenerate = (state: TriageStateType): Route =>
-    state.response ? END : "verifyAndJudge";
+  const afterGenerate = (state: TriageStateType): Route => {
+    if (state.response) return END;
+    if (state.groundingFeedback) {
+      return state.groundingAttempts <= deps.config.groundingMaxRetries
+        ? "generate"
+        : END;
+    }
+    return "verifyAndJudge";
+  };
 
   const afterVerify = (state: TriageStateType): Route => {
     if (state.response) return END;
@@ -301,6 +358,17 @@ function invalidModelEscalation(): TriageResponse {
     evidence: [],
     reason: "Invalid model response; escalating to a clinician.",
   };
+}
+
+function formatZodIssues(error: {
+  issues: Array<{ path: PropertyKey[]; message: string }>;
+}): string {
+  return error.issues
+    .map((issue) => {
+      const path = issue.path.length > 0 ? issue.path.join(".") : "(root)";
+      return `${path}: ${issue.message}`;
+    })
+    .join("; ");
 }
 
 function ungroundedEscalation(

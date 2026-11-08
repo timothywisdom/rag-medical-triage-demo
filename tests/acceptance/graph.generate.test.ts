@@ -62,24 +62,76 @@ describe("Feature: Grounded generation", () => {
     expect(prompt.system).toMatch(/verbatim/i);
   });
 
-  it("Scenario: Invalid model output becomes a safe escalation", async () => {
+  it("Scenario: Invalid model output retries then escalates", async () => {
     const store = loadSummaryStore(dataDir);
+    let calls = 0;
     const bad: LlmProvider = {
       async generate() {
+        calls += 1;
         return { action: "answer", reply: "hi", evidence: [], reason: "x" } as never;
       },
       async judge() {
         return { supported: true, unsupportedClaims: [] };
       },
     };
-    const config = configFromEnv({ GROUNDING_CHECK: "0" });
+    const config = configFromEnv({
+      GROUNDING_CHECK: "0",
+      GROUNDING_MAX_RETRIES: "2",
+    });
     const graph = buildTriageGraph({ store, llm: bad, config });
     const result = await runTriage(
       { question: "anything", summaryIds: ["strep_01"] },
       { graph },
     );
 
+    expect(calls).toBe(3);
     expect(result.response.action).toBe("escalate");
     expect(result.response.reason).toMatch(/invalid model response/i);
+    expect(result.trace.groundingFailures.some((f) => /schema/i.test(f))).toBe(
+      true,
+    );
+  });
+
+  it("Scenario: Schema failure recovers on retry", async () => {
+    const store = loadSummaryStore(dataDir);
+    const { found } = store.getMany(["strep_01"]);
+    const goodQuote =
+      found[0]!.text.includes("Finish the full 10-day")
+        ? "Finish the full 10-day course even if you feel better sooner."
+        : found[0]!.text.split("\n").find((l) => l.startsWith("- "))?.slice(2) ??
+          "x";
+    let n = 0;
+    const llm: LlmProvider = {
+      async generate(input) {
+        n += 1;
+        if (n === 1) {
+          return { action: "answer", reply: "hi", evidence: [], reason: "x" } as never;
+        }
+        expect(input.feedback ?? "").toMatch(/schema/i);
+        return {
+          action: "answer",
+          urgency: "routine",
+          reply: goodQuote,
+          evidence: [{ summaryId: "strep_01", quote: goodQuote }],
+          reason: "recovered",
+        };
+      },
+      async judge() {
+        return { supported: true, unsupportedClaims: [] };
+      },
+    };
+    const config = configFromEnv({
+      GROUNDING_CHECK: "0",
+      GROUNDING_MAX_RETRIES: "2",
+    });
+    const graph = buildTriageGraph({ store, llm, config });
+    const result = await runTriage(
+      { question: "anything", summaryIds: ["strep_01"] },
+      { graph },
+    );
+
+    expect(n).toBe(2);
+    expect(result.response.action).toBe("answer");
+    expect(result.response.reason).toBe("recovered");
   });
 });
