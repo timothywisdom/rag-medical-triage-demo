@@ -1,6 +1,6 @@
 import type { AgentConfig } from "./config.js";
 import { createLlm } from "./llm/index.js";
-import { loadSummaryStore } from "./store.js";
+import { loadSummaryStore, type SummaryStore } from "./store.js";
 import {
   buildTriageGraph,
   runTriage,
@@ -8,7 +8,12 @@ import {
   type TriageResult,
 } from "./agent/graph.js";
 
-export function createTriageRunner(config: AgentConfig) {
+export type TriageRunner = {
+  store: SummaryStore;
+  triage(input: TriageInput): Promise<TriageResult>;
+};
+
+export function createTriageRunner(config: AgentConfig): TriageRunner {
   const store = loadSummaryStore(config.dataDir);
   const llm = createLlm(config);
   const graph = buildTriageGraph({ store, llm, config });

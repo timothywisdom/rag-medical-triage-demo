@@ -3,9 +3,16 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
-    "./contract": "./src/contract.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./src/index.ts"
+    },
+    "./contract": {
+      "types": "./dist/contract.d.ts",
+      "default": "./src/contract.ts"
+    }
   },
+  "types": "./dist/index.d.ts",
   "scripts": {
     "dev": "tsx src/main.ts",
     "start": "tsx src/main.ts",

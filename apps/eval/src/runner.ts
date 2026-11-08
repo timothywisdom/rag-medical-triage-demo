@@ -1,7 +1,9 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import type { AgentConfig } from "../../agent/src/config.js";
-import { createTriageRunner } from "../../agent/src/run.js";
+import {
+  createTriageRunner,
+  type AgentConfig,
+} from "@maple/agent";
 import type { EvalCase } from "./cases.js";
 import { scoreCase, summarize, type CaseScore, type ScoreSummary } from "./score.js";
 

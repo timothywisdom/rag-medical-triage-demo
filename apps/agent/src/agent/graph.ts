@@ -1,14 +1,54 @@
-import { END, START, StateGraph } from "@langchain/langgraph";
+import { Annotation, END, START, StateGraph } from "@langchain/langgraph";
 import type { AgentConfig } from "../config.js";
 import { TriageResponseSchema, type TriageResponse } from "../contract.js";
 import type { LlmProvider } from "../llm/types.js";
-import type { SummaryStore } from "../store.js";
+import type { SummaryStore, VisitSummary } from "../store.js";
 import { applyGuardrails } from "./guardrails.js";
 import { judgeDraft } from "./grounding/judge.js";
 import { verifyQuotes } from "./grounding/quotes.js";
 import { buildGenerationPrompt } from "./prompts/index.js";
-import { emptyTrace, TriageState, type TriageStateType } from "./state.js";
+import {
+  emptyTrace,
+  type TriageStateType,
+  type TriageTrace,
+} from "./state.js";
 import { noContextEscalation } from "./templates.js";
+
+/** Kept module-local so declaration emit does not depend on LangGraph internals. */
+const TriageState = Annotation.Root({
+  question: Annotation<string>({
+    reducer: (_: string, right: string) => right,
+    default: () => "",
+  }),
+  summaryIds: Annotation<string[]>({
+    reducer: (_: string[], right: string[]) => right,
+    default: () => [],
+  }),
+  context: Annotation<VisitSummary[]>({
+    reducer: (_: VisitSummary[], right: VisitSummary[]) => right,
+    default: () => [],
+  }),
+  draft: Annotation<TriageResponse | null>({
+    reducer: (_: TriageResponse | null, right: TriageResponse | null) => right,
+    default: () => null,
+  }),
+  response: Annotation<TriageResponse | null>({
+    reducer: (_: TriageResponse | null, right: TriageResponse | null) => right,
+    default: () => null,
+  }),
+  groundingFeedback: Annotation<string>({
+    reducer: (_: string, right: string) => right,
+    default: () => "",
+  }),
+  groundingAttempts: Annotation<number>({
+    reducer: (_: number, right: number) => right,
+    default: () => 0,
+  }),
+  trace: Annotation<TriageTrace>({
+    reducer: (_: TriageTrace, right: TriageTrace) => right,
+    default: () => emptyTrace(),
+  }),
+});
 
 export type TriageDeps = {
   store: SummaryStore;
@@ -26,9 +66,23 @@ export type TriageResult = {
   trace: TriageStateType["trace"];
 };
 
+/** Portable surface of the compiled graph — avoids leaking LangGraph internals into .d.ts. */
+export type TriageCompiledGraph = {
+  invoke(input: {
+    question: string;
+    summaryIds: string[];
+    context: TriageStateType["context"];
+    draft: TriageStateType["draft"];
+    response: TriageStateType["response"];
+    groundingFeedback: string;
+    groundingAttempts: number;
+    trace: TriageStateType["trace"];
+  }): Promise<TriageStateType>;
+};
+
 type Route = "escalateNoContext" | "generate" | "verifyAndJudge" | "escalateUngrounded" | typeof END;
 
-export function buildTriageGraph(deps: TriageDeps) {
+export function buildTriageGraph(deps: TriageDeps): TriageCompiledGraph {
   const retrieve = async (state: TriageStateType) => {
     const { found, missing } = deps.store.getMany(state.summaryIds);
     return {
@@ -213,7 +267,7 @@ export function buildTriageGraph(deps: TriageDeps) {
 
 export async function runTriage(
   input: TriageInput,
-  options: { graph: ReturnType<typeof buildTriageGraph> },
+  options: { graph: TriageCompiledGraph },
 ): Promise<TriageResult> {
   const finalState = await options.graph.invoke({
     question: input.question,

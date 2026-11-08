@@ -1,7 +1,7 @@
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
-import { loadEnvFile, configFromEnv } from "../../agent/src/config.js";
+import { loadEnvFile, configFromEnv } from "@maple/agent";
 import { loadEvalCases } from "./cases.js";
 import { runEval } from "./runner.js";
 

@@ -1,4 +1,4 @@
-import type { TriageResponse } from "../../agent/src/contract.js";
+import type { TriageResponse } from "@maple/agent/contract";
 import type { EvalCase } from "./cases.js";
 
 const urgencyRank = { routine: 0, urgent: 1, emergency: 2 } as const;

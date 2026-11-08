@@ -12,3 +12,4 @@ export {
   type TriageInput,
   type TriageResult,
 } from "./agent/graph.js";
+export { createTriageRunner, type TriageRunner } from "./run.js";

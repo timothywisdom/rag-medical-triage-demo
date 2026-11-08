@@ -12,7 +12,7 @@
     "ask": "npm run ask -w @maple/agent --",
     "eval": "npm run eval -w @maple/eval --",
     "eval:compare": "npm run eval:compare -w @maple/eval --",
-    "typecheck": "tsc -p apps/agent --noEmit && tsc -p apps/web --noEmit"
+    "typecheck": "tsc -p apps/agent && tsc -p apps/eval --noEmit && tsc -p apps/web --noEmit"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0",

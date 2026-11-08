@@ -7,7 +7,7 @@ import type { AddressInfo } from "node:net";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import type { AgentConfig } from "./config.js";
-import { createTriageRunner } from "./run.js";
+import { createTriageRunner, type TriageRunner } from "./run.js";
 
 export type RunningAgentServer = {
   baseUrl: string;
@@ -50,7 +50,7 @@ async function handle(
   req: IncomingMessage,
   res: ServerResponse,
   config: AgentConfig,
-  runner: ReturnType<typeof createTriageRunner>,
+  runner: TriageRunner,
 ): Promise<void> {
   const url = new URL(req.url ?? "/", `http://${req.headers.host ?? "localhost"}`);
 
@@ -91,7 +91,7 @@ async function triage(
   req: IncomingMessage,
   res: ServerResponse,
   config: AgentConfig,
-  runner: ReturnType<typeof createTriageRunner>,
+  runner: TriageRunner,
 ): Promise<void> {
   const started = Date.now();
   let raw: unknown;
