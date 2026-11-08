@@ -1,12 +1,8 @@
-import { resolve } from "node:path";
-import { fileURLToPath } from "node:url";
-import { loadEnvFile, configFromEnv } from "./config.js";
+import { loadRepoEnvLocal, configFromEnv } from "./config.js";
 import { startAgentServer } from "./server.js";
 
 async function main(): Promise<void> {
-  const repoRoot = fileURLToPath(new URL("../../..", import.meta.url));
-  loadEnvFile(resolve(repoRoot, ".env.local"));
-  loadEnvFile(".env.local");
+  loadRepoEnvLocal();
   const config = configFromEnv(process.env);
   const server = await startAgentServer(config);
   process.stdout.write(

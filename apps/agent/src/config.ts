@@ -10,7 +10,7 @@ export type AgentConfig = {
   openaiModel: string;
   groundingCheck: boolean;
   groundingMaxRetries: number;
-  promptVersion: "v1" | "v2";
+  promptVersion: "v1" | "v2" | "v3";
   maxLlmAttempts: number;
   retryBaseMs: number;
   instanceId: string;
@@ -33,8 +33,12 @@ export function configFromEnv(
   }
 
   const promptVersion = (env.PROMPT_VERSION || "v1").trim();
-  if (promptVersion !== "v1" && promptVersion !== "v2") {
-    throw new Error('PROMPT_VERSION must be "v1" or "v2".');
+  if (
+    promptVersion !== "v1" &&
+    promptVersion !== "v2" &&
+    promptVersion !== "v3"
+  ) {
+    throw new Error('PROMPT_VERSION must be "v1", "v2", or "v3".');
   }
 
   const groundingMaxRetries = intEnv(env, "GROUNDING_MAX_RETRIES", 2);
@@ -63,6 +67,11 @@ export function configFromEnv(
   };
 }
 
+/** Repo root (apps/agent/src -> ../../..). */
+export function repoRoot(): string {
+  return resolve(fileURLToPath(new URL("../../..", import.meta.url)));
+}
+
 /** Load KEY=VALUE pairs from a .env file into process.env (does not override). */
 export function loadEnvFile(filePath = ".env.local"): void {
   const absolute = resolve(filePath);
@@ -87,11 +96,13 @@ export function loadEnvFile(filePath = ".env.local"): void {
   }
 }
 
+/** Load the repo-root `.env.local` (cwd-independent). */
+export function loadRepoEnvLocal(): void {
+  loadEnvFile(resolve(repoRoot(), ".env.local"));
+}
+
 function defaultDataDir(): string {
-  // apps/agent/src -> repo root take_home_starter (cwd-independent)
-  return resolve(
-    fileURLToPath(new URL("../../../take_home_starter", import.meta.url)),
-  );
+  return resolve(repoRoot(), "take_home_starter");
 }
 
 function intEnv(

@@ -6,25 +6,10 @@ After a Maple virtual visit, patients ask follow-ups like "Can I take ibuprofen 
 
 ```bash
 npm install
-cp .env.local.example .env.local   # set OPEN_AI_API_KEY
+cp .env.local.example .env.local   # edit values; set OPEN_AI_API_KEY for openai
 ```
 
-Node.js 22+. Offline tests use `LLM_PROVIDER=stub` (default).
-
-## Config
-
-| Variable | Default | Notes |
-|----------|---------|-------|
-| `LLM_PROVIDER` | `stub` | `stub` or `openai` |
-| `OPEN_AI_API_KEY` | — | Required when provider is `openai` |
-| `OPENAI_MODEL` | `gpt-4o-mini` | Chat model |
-| `GROUNDING_CHECK` | on (`1`) | Set `0` to skip quote+judge checks |
-| `GROUNDING_MAX_RETRIES` | `2` | Regenerations after grounding failure (0–3) |
-| `PROMPT_VERSION` | `v1` | `v1` or `v2` |
-| `LLM_MAX_ATTEMPTS` | `3` | Provider retries on 429/5xx |
-| `AGENT_SERVICE_URL` | `http://127.0.0.1:4001` | Web → agent (web package only) |
-| `AGENT_TIMEOUT_MS` | `30000` | Web fetch timeout |
-| `PORT` / `HOST` | `4001` / `127.0.0.1` | Agent listen address |
+Node.js 22+. Agent, CLI, eval, and web load repo-root `.env.local` into `process.env` at boot (existing shell env wins). Defaults and allowed options are documented in [`.env.local.example`](.env.local.example).
 
 ## Architecture
 
@@ -33,7 +18,7 @@ Browser → apps/web (Next.js) --HTTP JSON--> apps/agent (LangGraph)
 apps/eval --imports--> runTriage() in-process
 ```
 
-- **Key/value store** of visit summaries (`summary_id` → text + `patientId` / `visitDate`). The caller supplies `summaryIds` (trusted for the demo).
+- **Key/value store** of visit summaries (`summary_id` → text + `patientId` / `visitDate`). The caller supplies `summaryIds` (trusted for the demo). We assume the production app would have a relational map of user_id to summaryIds. A question would arrive with a JWT indicating the user_id. We'd lookup the summaryIds from this, thus allowing retrieval to fetch only the summaries that belong to the current user. For this demo, the user supplies summaryIds when asking a question.
 - **Graph:** retrieve → (no context) escalate canned reply → else generate → verifyQuotes → LLM judge → retry or escalate → finalize guardrails.
 - **Web never holds the OpenAI key** and does not import LangGraph/LangChain.
 
@@ -49,8 +34,9 @@ npm test                 # Vitest acceptance suite (stub)
 npm run test:e2e         # Playwright UI smoke (starts agent + web)
 npm run dev              # agent :4001 + web :3000
 npm run ask -- --summary strep_01 "When can I go back to work?"
-LLM_PROVIDER=openai PROMPT_VERSION=v1 npm run eval -- --label v1-baseline
-LLM_PROVIDER=openai PROMPT_VERSION=v2 npm run eval -- --label v2
+# set LLM_PROVIDER=openai (and key) in .env.local, then:
+npm run eval -- --label v2-baseline
+PROMPT_VERSION=v3 npm run eval -- --label v3
 npm run eval:compare -- apps/eval/runs/<before>.json apps/eval/runs/<after>.json
 ```
 

@@ -4,7 +4,10 @@
  */
 import { describe, expect, it } from "vitest";
 import { resolve } from "node:path";
-import { loadEnvFile, configFromEnv } from "../../apps/agent/src/config.js";
+import {
+  loadRepoEnvLocal,
+  configFromEnv,
+} from "../../apps/agent/src/config.js";
 import { loadSummaryStore } from "../../apps/agent/src/store.js";
 import { TriageResponseSchema } from "../../apps/agent/src/contract.js";
 import { createLlm } from "../../apps/agent/src/llm/index.js";
@@ -13,7 +16,7 @@ const live = process.env.LIVE === "1";
 
 describe.runIf(live)("Live OpenAI smoke", () => {
   it("case_04 produces a contract-valid triage response", async () => {
-    loadEnvFile(".env.local");
+    loadRepoEnvLocal();
     const config = configFromEnv({
       ...process.env,
       LLM_PROVIDER: "openai",

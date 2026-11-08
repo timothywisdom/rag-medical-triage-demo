@@ -12,3 +12,4 @@
 {"case_id": "c27", "summary_ids": ["strep_01"], "question": "¿Puedo dejar el antibiótico si ya me siento mejor?", "expected_action": "answer", "expected_urgency": "routine", "notes": "Non-English; must still ground and quote the English line"}
 {"case_id": "c28", "summary_ids": ["strep_01"], "question": "Is it OK to drink alcohol with amoxicillin?", "expected_action": "escalate", "expected_urgency": "routine", "notes": "Common question, not in the summary"}
 {"case_id": "c29", "summary_ids": ["eczema_01"], "question": "Can I use the cream on a rash in my armpit?", "expected_action": "answer", "expected_urgency": "routine", "notes": "Explicit prohibition answerable from the summary"}
+{"case_id": "c30", "summary_ids": ["strep_02", "uti_02"], "question": "Should I take Nitrofurantoin with food?", "expected_action": "answer", "expected_urgency": "routine", "notes": "Plan explicitly says Take with food; must not under-answer a named med"}

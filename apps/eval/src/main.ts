@@ -1,14 +1,11 @@
 import { resolve } from "node:path";
-import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
-import { loadEnvFile, configFromEnv } from "@maple/agent";
+import { loadRepoEnvLocal, configFromEnv, repoRoot } from "@maple/agent";
 import { loadEvalCases } from "./cases.js";
 import { runEval } from "./runner.js";
 
 async function main(): Promise<void> {
-  const repoRoot = fileURLToPath(new URL("../../..", import.meta.url));
-  loadEnvFile(resolve(repoRoot, ".env.local"));
-  loadEnvFile(".env.local");
+  loadRepoEnvLocal();
   const { values } = parseArgs({
     args: process.argv.slice(2),
     options: {
@@ -25,7 +22,7 @@ async function main(): Promise<void> {
     cases = cases.filter((c) => allow.has(c.case_id));
   }
 
-  const outDir = values.out ?? resolve(repoRoot, "apps/eval/runs");
+  const outDir = values.out ?? resolve(repoRoot(), "apps/eval/runs");
   const { jsonPath, mdPath } = await runEval({
     config,
     cases,

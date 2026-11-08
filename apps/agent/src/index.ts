@@ -1,4 +1,10 @@
-export { configFromEnv, loadEnvFile, type AgentConfig } from "./config.js";
+export {
+  configFromEnv,
+  loadEnvFile,
+  loadRepoEnvLocal,
+  repoRoot,
+  type AgentConfig,
+} from "./config.js";
 export {
   TriageResponseSchema,
   type TriageResponse,

@@ -31,6 +31,11 @@ describe("Feature: App-level configuration", () => {
     ).toThrow(/GROUNDING_MAX_RETRIES/);
   });
 
+  it("Scenario: PROMPT_VERSION accepts v3", () => {
+    const config = configFromEnv({ PROMPT_VERSION: "v3" });
+    expect(config.promptVersion).toBe("v3");
+  });
+
   it("Scenario: Agent service listens on its own port", () => {
     const config = configFromEnv({});
     expect(config).toMatchObject({
