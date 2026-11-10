@@ -91,6 +91,8 @@ describe("Feature: LLM providers", () => {
     const service = new LlmService(flaky, {
       maxAttempts: 3,
       retryBaseMs: 1,
+      providerName: "stub",
+      model: "stub",
     });
     const store = loadSummaryStore(dataDir);
     const result = await service.generate({

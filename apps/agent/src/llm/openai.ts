@@ -4,6 +4,7 @@ import {
   TriageResponseSchema,
   type TriageResponse,
 } from "../contract.js";
+import type { TokenUsage } from "./pricing.js";
 import type {
   GenerateInput,
   JudgeInput,
@@ -23,6 +24,7 @@ export type OpenAIProviderOptions = {
 
 export class OpenAIProvider implements LlmProvider {
   private readonly model: ChatOpenAI;
+  private lastUsage: TokenUsage | undefined;
 
   constructor(options: OpenAIProviderOptions) {
     this.model = new ChatOpenAI({
@@ -32,8 +34,16 @@ export class OpenAIProvider implements LlmProvider {
     });
   }
 
+  takeLastUsage(): TokenUsage | undefined {
+    const usage = this.lastUsage;
+    this.lastUsage = undefined;
+    return usage;
+  }
+
   async generate(input: GenerateInput): Promise<TriageResponse> {
-    const structured = this.model.withStructuredOutput(TriageResponseSchema);
+    const structured = this.model.withStructuredOutput(TriageResponseSchema, {
+      includeRaw: true,
+    });
     const context = input.summaries
       .map(
         (s) =>
@@ -57,15 +67,18 @@ export class OpenAIProvider implements LlmProvider {
       input.feedback ? `\nPrevious grounding failures:\n${input.feedback}` : "",
     ].join("\n");
 
-    const draft = await structured.invoke([
+    const result = await structured.invoke([
       { role: "system", content: system },
       { role: "user", content: user },
     ]);
-    return TriageResponseSchema.parse(draft);
+    this.lastUsage = usageFromRaw(result.raw);
+    return TriageResponseSchema.parse(result.parsed);
   }
 
   async judge(input: JudgeInput): Promise<JudgeVerdict> {
-    const structured = this.model.withStructuredOutput(JudgeSchema);
+    const structured = this.model.withStructuredOutput(JudgeSchema, {
+      includeRaw: true,
+    });
     const evidence = input.draft.evidence
       .map((e) => `- [${e.summaryId}] ${e.quote}`)
       .join("\n");
@@ -84,10 +97,36 @@ export class OpenAIProvider implements LlmProvider {
         ].join("\n\n"),
       },
     ]);
-    const parsed = JudgeSchema.parse(result);
+    this.lastUsage = usageFromRaw(result.raw);
+    const parsed = JudgeSchema.parse(result.parsed);
     return {
       supported: parsed.supported,
       unsupportedClaims: parsed.unsupported_claims,
     };
   }
+}
+
+function usageFromRaw(raw: unknown): TokenUsage | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const meta = (raw as { usage_metadata?: Record<string, unknown> })
+    .usage_metadata;
+  if (!meta || typeof meta !== "object") return undefined;
+
+  const inputTokens = numberOrZero(
+    meta.input_tokens ?? meta.prompt_tokens ?? meta.inputTokens,
+  );
+  const outputTokens = numberOrZero(
+    meta.output_tokens ?? meta.completion_tokens ?? meta.outputTokens,
+  );
+  const totalTokens = numberOrZero(
+    meta.total_tokens ?? meta.totalTokens ?? inputTokens + outputTokens,
+  );
+  if (inputTokens === 0 && outputTokens === 0 && totalTokens === 0) {
+    return undefined;
+  }
+  return { inputTokens, outputTokens, totalTokens };
+}
+
+function numberOrZero(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }

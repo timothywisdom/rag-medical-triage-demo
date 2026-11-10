@@ -23,11 +23,11 @@ It is **not** the average of `actionAccuracy` and `urgencyAccuracy`. Matching ac
 - **actionAccuracy** — share of cases where only the action label matched (ignores urgency and reply checks for this metric).
 - **urgencyAccuracy** — share of cases where only the urgency label matched (ignores action and reply checks for this metric).
 
-These diagnose *which half* of the joint label is failing. A run can improve urgencyAccuracy enough to lift joint accuracy even if actionAccuracy is flat or slightly down.
+These diagnose _which half_ of the joint label is failing. A run can improve urgencyAccuracy enough to lift joint accuracy even if actionAccuracy is flat or slightly down.
 
 ### Under-triage vs over-triage
 
-Severity ranks `answer` &lt; `escalate`, and within that `routine` &lt; `urgent` &lt; `emergency`. We compare expected severity to actual severity:
+Severity ranks `answer` < `escalate`, and within that `routine` < `urgent` < `emergency`. We compare expected severity to actual severity:
 
 - **underTriageRate** — actual severity **lower** than the label (e.g. `answer` when expected `escalate`, or `urgent` when expected `emergency`). **Lower is better** — this is the dangerous miss.
 - **overTriageRate** — actual severity **higher** than the label (e.g. `escalate` when expected `answer`). **Lower is better for accuracy**; higher means more “safe but wrong.” Clinically safer than under-triage, but still incorrect under strict grading.
@@ -38,14 +38,14 @@ Among cases labeled `emergency` urgency, the share where the model also predicte
 
 ### Metric cheat sheet (v1 → v2)
 
-| Metric | v2 vs v1 | Better direction |
-|--------|----------|------------------|
-| overall accuracy | better (0.690 → 0.724) | higher |
-| actionAccuracy | slightly worse (0.805 → 0.793) | higher |
-| urgencyAccuracy | better (0.851 → 0.931) | higher |
-| underTriageRate | better (0.126 → 0.034) | lower |
-| overTriageRate | worse for accuracy / safer clinically (0.184 → 0.241) | lower for accuracy |
-| emergency recall | same (1.00) | higher |
+| Metric           | v2 vs v1                                              | Better direction   |
+| ---------------- | ----------------------------------------------------- | ------------------ |
+| overall accuracy | better (0.690 → 0.724)                                | higher             |
+| actionAccuracy   | slightly worse (0.805 → 0.793)                        | higher             |
+| urgencyAccuracy  | better (0.851 → 0.931)                                | higher             |
+| underTriageRate  | better (0.126 → 0.034)                                | lower              |
+| overTriageRate   | worse for accuracy / safer clinically (0.184 → 0.241) | lower for accuracy |
+| emergency recall | same (1.00)                                           | higher             |
 
 On the r3 pairwise file, `actionAccuracy` was flat (0.793 → 0.793); the slight action dip shows up in the 3-run mean.
 

@@ -1,5 +1,6 @@
 import type { TriageResponse } from "../contract.js";
 import { parseSections } from "../store.js";
+import type { TokenUsage } from "./pricing.js";
 import type {
   GenerateInput,
   JudgeInput,
@@ -8,6 +9,10 @@ import type {
 } from "./types.js";
 
 export class StubProvider implements LlmProvider {
+  takeLastUsage(): TokenUsage | undefined {
+    return { inputTokens: 0, outputTokens: 0, totalTokens: 0 };
+  }
+
   async generate(input: GenerateInput): Promise<TriageResponse> {
     const evidence: TriageResponse["evidence"] = [];
     const replyParts: string[] = [];

@@ -1,4 +1,5 @@
 import type { TriageResponse } from "../contract.js";
+import { withLlmTelemetry } from "./telemetry.js";
 import type {
   GenerateInput,
   JudgeInput,
@@ -15,19 +16,30 @@ export class LlmService implements LlmProvider {
   ) {}
 
   generate(input: GenerateInput): Promise<TriageResponse> {
-    return this.withRetry(() => this.provider.generate(input));
+    return this.withRetry("generate", () => this.provider.generate(input));
   }
 
   judge(input: JudgeInput): Promise<JudgeVerdict> {
-    return this.withRetry(() => this.provider.judge(input));
+    return this.withRetry("judge", () => this.provider.judge(input));
   }
 
-  private async withRetry<T>(fn: () => Promise<T>): Promise<T> {
-    const { maxAttempts, retryBaseMs } = this.options;
+  private async withRetry<T>(
+    operation: "generate" | "judge",
+    fn: () => Promise<T>,
+  ): Promise<T> {
+    const { maxAttempts, retryBaseMs, providerName, model } = this.options;
     let lastError: unknown;
     for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
       try {
-        return await fn();
+        return await withLlmTelemetry(
+          {
+            operation,
+            provider: providerName,
+            model,
+            takeUsage: () => this.provider.takeLastUsage?.(),
+          },
+          fn,
+        );
       } catch (error) {
         lastError = error;
         if (attempt >= maxAttempts || !isRetryable(error)) break;
